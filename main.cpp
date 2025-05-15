@@ -1,5 +1,6 @@
 #include<vector>
-#include<deque> 
+#include<deque>
+#include<iostream>
 #include "lift.hpp"
 //class lift{
 	/*
@@ -29,6 +30,12 @@
 		int isrunning=0;//1 up, -1 down
 		bool isdooropen=false;
 };*/
+class lift{//基类，后面添加update_state在上面继承 
+	public:
+		lift(int hh):h(hh) {}
+	private:
+		int h;//height,floor is from 1 to h
+};
 template<typename lft>
 class simulator{
 	public:
@@ -37,6 +44,10 @@ class simulator{
 		simulator(int nn, int hh):n(nn),h(hh){
 			while(nn--){
 				L.push_back(lft(hh));
+			}
+			waitpeople.push_back(std::deque<int>());
+			while(hh--){
+				waitpeople.push_back(std::deque<int>());
 			}
 		}
 		bool run(){//run 1s, update all states, return true if we do nothing
@@ -55,13 +66,21 @@ class simulator{
 			return true;
 			//return false;//true is ok, false is failed
 		}
+		int querywaitpeople(int floor){
+			return waitpeople[floor].size();
+		}
 	private:
 		std::vector<lft> L;//lifts
 		//放到lift类里面去//void (*update_state)(std::vector<lift> &L);//update lifts' state,only the lifts, such as gotofloor, not persons
 		int sec;//simulator has run secs
 		std::vector<std::deque<int>>waitpeople;//waitpeople[h]is the vector of people waiting at floor h, their gotofloor
 };
+using std::cout; using std::endl;
 int main() {
+	simulator<lift> s(2,13);
+	cout<<'1'<<endl;
+	for(int i=2;i<=13;++i)s.insertoneperson(i,i-1),cout<<'a';
+	for(int i=1;i<=13;++i)std::cout<<s.querywaitpeople(i)<<' ';
 	return 0;
 }
 
