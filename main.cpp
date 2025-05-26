@@ -33,7 +33,7 @@
 };*/
 class lift{//基类，后面添加update_state在上面继承 
 	public:
-		lift(int hh):h(hh),state(0) { /*本来想一次性allocate MAX_PEOPLE的，后来发现没什么用，算了。*//*现在加回来*/people.reserve(MAX_PEOPLE); }
+		lift(int hh):state(0),h(hh) { /*本来想一次性allocate MAX_PEOPLE的，后来发现没什么用，算了。*//*现在加回来*/people.reserve(MAX_PEOPLE); }
 		int waittime=0;//僵直时间 
 		int get_floor(){ return floor; }
 		int down_person(){//尝试执行下电梯，返回下电梯的人数以供统计时间，如果没开门就返回0
@@ -69,12 +69,6 @@ class lift{//基类，后面添加update_state在上面继承
 			people.push_back(f);
 			return true;
 		}
-		virtual void update_state(){}//do nothing in base class
-	private:
-		int h;//height,floor is from 1 to h
-		const unsigned MAX_PEOPLE=13;
-		int floor=1;//now floor
-		std::vector<int>people;
 		//states
 		int state;
 		/*
@@ -86,13 +80,60 @@ class lift{//基类，后面添加update_state在上面继承
 		9:正在开门 
 		3/5:开门运行，不应该存在 
 		*/
+		int laststate=-1;
 		//运行参数 
+		const int h;//height,floor is from 1 to h
+		const unsigned MAX_PEOPLE=13;
+		int floor=1;//now floor
+		std::vector<int>people;
 		const int TIME_WITH_START=2,
 				  TIME_WITHOUT_START=3,
 				  DOOR_TIME=2;
 };
 void random_insert_person(std::vector<std::deque<int>> q, int sec){
 }
+void update_state(lift &l, std::vector<std::deque<int>> &waitpeople){
+	if(l.waittime>0)return;
+	switch(l.state){
+		case 3:
+		case 5:
+		case 8:
+		case 9:{
+			throw std::exception();
+			break;
+		}
+		case 1:{
+			l.state=0;
+			l.waittime+=l.DOOR_TIME;
+			break;
+		}
+		case 2:{
+			if(l.floor>=l.h-1||waitpeople[l.get_floor()+1].size()>0){
+				++l.floor;
+				l.state=0;
+				l.waittime+=l.TIME_WITHOUT_START;
+			} else {
+				++l.floor;
+				l.waittime+=l.TIME_WITH_START;
+			}
+			break;
+		}
+		case 4:{
+			if(l.floor<=2||waitpeople[l.get_floor()-1].size()>0){
+				--l.floor;
+				l.state=0;
+				l.waittime+=l.TIME_WITHOUT_START;
+			} else {
+				--l.floor;
+				l.waittime+=l.TIME_WITH_START;
+			}
+			break;
+		}
+		case 0:{
+			break;
+		}
+	}
+} 
 template<typename lft>
 class simulator{
 	public:
@@ -124,7 +165,7 @@ class simulator{
 				//updatestats(l);
 				//将电梯情况更新到下一秒。 
 				if(l.waittime==0)//可能关门了。这里先检查一遍，在update_state里面也应该检查一遍 
-					l.update_state();
+					update_state(l,waitpeople);
 			}
 			//最后，所有僵直时间-1，跳转到下一秒。 
 			bool isidle=true;
@@ -144,7 +185,7 @@ class simulator{
 		int querywaitpeople(int floor){
 			return waitpeople[floor].size();
 		}
-	private:
+	protected:
 		std::vector<lft> L;//lifts
 		//放到lift类里面去//void (*update_state)(std::vector<lift> &L);//update lifts' state,only the lifts, such as gotofloor, not persons
 		int sec;//simulator has run secs
@@ -166,12 +207,12 @@ class simulator{
 			if(downs==0&&ups==0)return;
 			else if(l.waittime>0){
 				throw std::exception();
-				return;
+				return;//忘了是什么逻辑了，以后再补 
 			}
 			l.waittime+=getupdowntime(ups,downs);
 		}
 		//void updatestats(lft &l){}//更新与l有关的统计，l应该在L里并刚刚经历过改变//弃用 
-		int getupdowntime(int ups, int downs){
+		int getupdowntime(int ups, int downs){//要重写 
 			if(ups>1)ups=1+(ups-1+1)/2;//+1是上取整 
 			if(downs>1)downs=1+(downs-1+1)/2;//第一个人算一个，后面每人算半个 
 			int persons=ups+downs;
