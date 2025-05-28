@@ -151,10 +151,10 @@ void solve1(const unsigned seed, std::vector<double> &cost){
 	const int mpeople=13;//MAX_PEOPLE
 	for(int f=12;f>1;--f){
 		int times=waitpeople[f]%mpeople;
-		while(times--)cost.push_back(getrunningtime(f-1)*2);
+		while(times--)cost.push_back(getrunningtime(f-1)*2+mpeople/2.0);
 		waitpeople[f]-=times*mpeople;
 		if(waitpeople[f]>0){
-			cost.push_back(getrunningtime(f-1)*2);
+			cost.push_back(getrunningtime(f-1)*2+mpeople/2.0);
 			waitpeople[f-1]-=mpeople-waitpeople[f];
 			waitpeople[f]=0;
 		}
@@ -185,25 +185,25 @@ double solve2(const unsigned seed){
 	double cost1=0, cost2=0;
 	for(int f=7;f>1;--f){
 		int times=waitpeople1[f]%mpeople;
-		while(times--)cost1+=(getrunningtime(f-1)*2);
+		while(times--)cost1+=(getrunningtime(f-1)*2)+mpeople/2.0;
 		waitpeople1[f]-=times*mpeople;
 		if(waitpeople1[f]>0){
-			cost1+=(getrunningtime(f-1)*2);
+			cost1+=(getrunningtime(f-1)*2+mpeople/2.0);
 			waitpeople1[f-1]-=mpeople-waitpeople1[f];
 			waitpeople1[f]=0;
 		}
 	}
 	for(int f=6;f>1;--f){
 		int times=waitpeople2[f]%mpeople;
-		while(times--)cost2+=(getrunningtime(f-1)*2);
+		while(times--)cost2+=(getrunningtime(f-1)*2)+mpeople/2.0;
 		waitpeople2[f]-=times*mpeople;
 		if(waitpeople2[f]>0){
-			cost2+=(getrunningtime(f-1)*2);
+			cost2+=(getrunningtime(f-1)*2+mpeople/2.0);
 			waitpeople2[f-1]-=mpeople-waitpeople2[f];
 			waitpeople2[f]=0;
 		}
 	}
-	return (cost1<cost2?cost1:cost2);
+	return (cost1>cost2?cost1:cost2);
 }
 int main() {
 	const unsigned seed=1145;
@@ -214,8 +214,7 @@ int main() {
 		if(cost1<cost2)cost1+=i;
 		else cost2+=i;
 	}
-	if(cost2<cost1)cost=cost2;
-	else cost=cost1;
+	cost=(cost1>cost2?cost1:cost2);
 	cout<<cost<<endl;
 	cout<<solve2(seed);
 	return 0;
