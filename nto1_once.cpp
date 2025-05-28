@@ -137,7 +137,7 @@ class simulator{
 乘客等待时间不计算了，或者在外面计算（进入等待-sec，上电梯+sec，出电梯+sec），应该写进updateperson
 其它没有什么要计算的，所以不应该写updatestats
 */
-void solve1(const unsigned seed, std::vector<double> &cost){
+inline void solve1(const unsigned seed, std::vector<double> &cost){
 	int waitpeople[13]={0};
 	int s=100;
 	srand(seed);
@@ -160,7 +160,7 @@ void solve1(const unsigned seed, std::vector<double> &cost){
 		}
 	}
 }
-double solve2(const unsigned seed){
+inline double solve2(const unsigned seed){
 	int waitpeople[13]={0},waitpeople1[13]={0},waitpeople2[13]={0};
 	int s=100;
 	srand(seed);
@@ -205,8 +205,7 @@ double solve2(const unsigned seed){
 	}
 	return (cost1>cost2?cost1:cost2);
 }
-int main() {
-	const unsigned seed=1145;
+void test(unsigned seed){
 	std::vector<double> costs;
 	solve1(seed, costs);
 	double cost1=0,cost2=0,cost;
@@ -215,8 +214,11 @@ int main() {
 		else cost2+=i;
 	}
 	cost=(cost1>cost2?cost1:cost2);
-	cout<<cost<<endl;
-	cout<<solve2(seed);
+	cout<<cost<<',';
+	cout<<solve2(seed)<<endl;
+}
+int main() {
+	for(unsigned i=0;i<32768;++i)test(i);
 	return 0;
 }
 
