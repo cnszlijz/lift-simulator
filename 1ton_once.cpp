@@ -3,6 +3,7 @@
 #include<iostream>
 #include<exception>
 #include<cstdlib>
+#include<cstring>
 using std::cout; using std::endl; using std::cin;
 const double TIME_ONEFLOOR=10.26;
 const double K=2.09964, B=8.276;//time=K*f+B;
@@ -35,90 +36,116 @@ inline double getrunningtimehigh(int f, int plus){
 }
 int S=500;//总人数 
 int F=12;//总层数 
-inline double solve1(const unsigned seed, std::vector<double> &cost){//计算seed下S个人F层不分流的运行时间 
-	cost.clear();
-	int waitpeople[F+2]={0};
-	int s=S;
+inline double solve1(const unsigned seed){//计算seed下S个人F层不分流的运行时间 
+	int waitpeople[F+2]={0},cnt=0;
 	srand(seed);
-	while(s--){
-		int nowfloor=rand()%(F-1)+2;
-		waitpeople[nowfloor]++;
-	}
-	//for(int i=1;i<=F;++i)cout<<waitpeople[i]<<',';
-	//cout<<endl;
-	//double
-	const int mpeople=13;//MAX_PEOPLE
-	double cost1=0,cost2=0;
-	for(int f=F;f>1;--f){
-		int times=waitpeople[f]/mpeople;
-		waitpeople[f]-=times*mpeople;
-		while(times--){
-			cost.push_back(getrunningtime(f-1)*2+mpeople/2.0);
-			(cost1>cost2?cost2:cost1)+=getrunningtime(f-1)*2+mpeople/2.0;
-		}
-		if(waitpeople[f]>=mpeople)abort();//assert 
-		if(waitpeople[f]>0){
-			double tmp=getrunningtime(f-1)+getrunningtime(f-2)+getrunningtime(1)+mpeople/2.0;
-			cost.push_back(tmp);
-			(cost1>cost2?cost2:cost1)+=tmp;
-			waitpeople[f-1]-=mpeople-waitpeople[f];
-			waitpeople[f]=0;
-		}
-	}
-	//return (cost1<cost2?cost2:cost1);
-	return (cost1+cost2)/2.0; 
-}
-inline double solve2(const unsigned seed){//计算seed下S个人F层分单双层的运行时间 
-	int waitpeople[F+2]={0},waitpeople1[F+2]={0},waitpeople2[F+2]={0};
 	int s=S;
-	srand(seed);
+	double cost1=0.0, cost2=0.0;
 	while(s--){
-		int nowfloor=rand()%(F-1)+2;
-		waitpeople[nowfloor]++;
-	}
-	//分流 
-	int j=2,k=2;
-	for(int i=2;i<=F;){
-		waitpeople1[j++]=waitpeople[i++];
-		if(i>F)break;
-		waitpeople2[k++]=waitpeople[i++];
-	}
-	//danshuangceng
-	const int mpeople=13;//MAX_PEOPLE
-	double cost1=0, cost2=0;
-	int f=F;
-	while(waitpeople1[f]==0)f--;
-	//cout<<'|'<<f<<'|'; 
-	for(;f>1;--f){
-		int times=waitpeople1[f]/mpeople;
-		waitpeople1[f]-=times*mpeople;
-		while(times--)cost1+=(getrunningtime12(f-1)*2)+mpeople/2.0;
-		if(waitpeople1[f]>=mpeople)abort();//assert
-		if(waitpeople1[f]>0){
-			double tmp=getrunningtime12(f-1)+getrunningtime12(f-2)+getrunningtime(2)+mpeople/2.0;
-			cost1+=tmp;
-			waitpeople1[f-1]-=mpeople-waitpeople1[f];
-			waitpeople1[f]=0;
+		waitpeople[rand()%(F-1)+2];
+		cnt++;
+		if(cnt>=F){
+			double currtime=F/2.0;//上下 
+			int floor=1;
+			for(int i=2; i<=F; ++i){
+				if(waitpeople[i]){
+					currtime+=getrunningtime(i-floor);
+					floor=i;
+				}
+			}
+			if(floor!=1)currtime+=getrunningtime(floor-1);
+			(cost1>cost2?cost2:cost1)+=currtime;
+			cnt=0;
+			memset(waitpeople,0,sizeof(waitpeople));
 		}
 	}
-	f=F;
-	while(waitpeople2[f]==0)f--;
-	//cout<<'|'<<f<<'|'; 
-	for(;f>1;--f){
-		int times=waitpeople2[f]/mpeople;
-		waitpeople2[f]-=times*mpeople;
-		while(times--)cost2+=(getrunningtime22(f-1)*2)+mpeople/2.0;
-		if(waitpeople2[f]>=mpeople)abort();//assert
-		if(waitpeople2[f]>0){
-			double tmp=getrunningtime22(f-1)+getrunningtime22(f-2)+getrunningtime(2)+mpeople/2.0;
-			cost2+=tmp;
-			waitpeople2[f-1]-=mpeople-waitpeople2[f];
-			waitpeople2[f]=0;
+	if(cnt>0){
+		double currtime=cnt/2.0;//上下 
+		int floor=1;
+		for(int i=2; i<=F; ++i){
+			if(waitpeople[i]){
+				currtime+=getrunningtime(i-floor);
+				floor=i;
+			}
 		}
+		if(floor!=1)currtime+=getrunningtime(floor-1);
+		(cost1>cost2?cost2:cost1)+=currtime;
 	}
-	//return (cost1>cost2?cost1:cost2);
 	return (cost1+cost2)/2.0;
 }
+
+inline double solve2(const unsigned seed){//计算seed下S个人F层分单双层的运行时间 
+	int waitpeople1[F+2]={0},waitpeople2[F+2]={0},cnt1=0,cnt2=0;
+	srand(seed);
+	int s=S;
+	double cost1=0.0, cost2=0.0;
+	while(s--){
+		int nowfloor=rand()%(F-1)+2;
+		//waitpeople[rand()%(F-1)+2];
+		//cnt++;
+		if(nowfloor&1){
+			waitpeople1[rand()%(F-1)+2];
+			cnt1++;
+			if(cnt1>=F){
+				double currtime=F/2.0;//上下 
+				int floor=1;
+				for(int i=2; i<=F; ++i){
+					if(waitpeople1[i]){
+						currtime+=getrunningtime(i-floor);
+						floor=i;
+					}
+				}
+				if(floor!=1)currtime+=getrunningtime(floor-1);
+				(cost1)+=currtime;
+				cnt1=0;
+				memset(waitpeople1,0,sizeof(waitpeople1));
+			}
+		} else {
+			waitpeople2[rand()%(F-1)+2];
+			cnt2++;
+			if(cnt2>=F){
+				double currtime=F/2.0;//上下 
+				int floor=1;
+				for(int i=2; i<=F; ++i){
+					if(waitpeople2[i]){
+						currtime+=getrunningtime(i-floor);
+						floor=i;
+					}
+				}
+				if(floor!=1)currtime+=getrunningtime(floor-1);
+				(cost2)+=currtime;
+				cnt2=0;
+				memset(waitpeople2,0,sizeof(waitpeople2));
+			}
+		}
+	}
+	if(cnt1>0){
+		double currtime=cnt1/2.0;//上下 
+		int floor=1;
+		for(int i=2; i<=F; ++i){
+			if(waitpeople1[i]){
+				currtime+=getrunningtime(i-floor);
+				floor=i;
+			}
+		}
+		if(floor!=1)currtime+=getrunningtime(floor-1);
+		(cost1)+=currtime;
+	}
+	if(cnt2>0){
+		double currtime=cnt2/2.0;//上下 
+		int floor=1;
+		for(int i=2; i<=F; ++i){
+			if(waitpeople2[i]){
+				currtime+=getrunningtime(i-floor);
+				floor=i;
+			}
+		}
+		if(floor!=1)currtime+=getrunningtime(floor-1);
+		(cost2)+=currtime;
+	}
+	return (cost1+cost2)/2.0;
+}
+/*
 double solve3(unsigned seed, int floor){//2~floor&floor+1~F
 	int waitpeople[F+2]={0},waitpeople1[F+2]={0},waitpeople2[F+2]={0};
 	int s=S;
@@ -199,17 +226,17 @@ void test3(unsigned seed){//没分流的去sum1，分单双层的去sum2，分高度层的去sum3。
 	sum1+=solve1(seed, costs);
 	sum2+=solve2(seed);
 	for(int floor=2;floor<F;++floor)sum3[floor]+=solve3(seed, floor);
-}
+}*/
 int main() {
-	sum3.resize(F+2);
+	//sum3.resize(F+2);
 	unsigned maxi=32768;
-	for(unsigned i=0;i<maxi;++i)//test(i);
-		test2(i);
-	cout<<sum0/maxi<<endl<<sum1/maxi<<endl<<sum2/maxi<<endl;
+	for(unsigned i=0;i<maxi;++i);//test(i);
+		//test2(i);
+	/*cout<<sum0/maxi<<endl<<sum1/maxi<<endl<<sum2/maxi<<endl;
 	sum1=sum2=0;
 	for(unsigned i=0;i<maxi;++i)test3(i);
 	cout<<endl<<sum0/maxi<<endl<<sum1/maxi<<endl<<sum2/maxi<<endl;
-	for(int floor=2;floor<F;++floor)cout<<floor<<':'<<sum3[floor]/maxi<<endl;
+	for(int floor=2;floor<F;++floor)cout<<floor<<':'<<sum3[floor]/maxi<<endl;*/
 	return 0;
 }
 
