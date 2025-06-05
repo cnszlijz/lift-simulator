@@ -82,7 +82,7 @@ void solve1(
 int main() {
 	int n;
 	cin>>n;
-	cout<<"floor,ans,"<<endl;
+	/*cout<<"floor,ans,"<<endl;
 	for(int i=3;i<200;++i){
 		//solve(n,i);
 		solve1(n,i);
@@ -93,6 +93,21 @@ int main() {
 		int lift[3]={1,1,1};
 		double curtime=do_solve(n,i,lift);
 		cout<<(curtime-besttime)/curtime;
+		cout<<endl;
+	}*/
+	const int h=12;
+	int lift[3];
+	double ans[h+2][h+2]={0};
+	for(lift[0]=1;lift[0]<h;++lift[0])
+		for(lift[1]=lift[0];lift[1]<=h;++lift[1]){
+			if(n<=2){
+				ans[lift[0]][lift[1]]=do_solve(n,h,lift);
+			} else throw std::exception();
+		}
+	for(lift[0]=1;lift[0]<=h;++lift[0]){
+		for(lift[1]=1;lift[1]<=h;++lift[1]){
+			cout<<ans[lift[1]][lift[0]]<<',';
+		}
 		cout<<endl;
 	}
 	return 0;
